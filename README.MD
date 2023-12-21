@@ -35,11 +35,11 @@ REST Endpoints:
 
 ```yaml
 {
-    "customerIds": [
-        "94795",
-        "94796",
-        "94797"
-    ]
+  "customerIds": [
+    "94795",
+    "94796",
+    "94797"
+  ]
 }
 ```
 
@@ -53,25 +53,23 @@ REST Endpoints:
 
 ```yaml
 {
-  {
-      "storeCredits": [
-          {
-              "customer_id": "94795",
-              "website_id": "4",
-              "amount": "234.12"
-          },
-          {
-              "customer_id": "94796",
-              "website_id": "12",
-              "amount": "903.12"
-          },
-          {
-              "customer_id": "94797",
-              "website_id": "1",
-              "amount": "200.12"
-          }
-      ]
-  }
+  "storeCredits": [
+    {
+      "customer_id": "94795",
+      "website_id": "4",
+      "amount": "234.12"
+    },
+    {
+      "customer_id": "94796",
+      "website_id": "12",
+      "amount": "903.12"
+    },
+    {
+      "customer_id": "94797",
+      "website_id": "1",
+      "amount": "200.12"
+    }
+  ]
 }
 ```
 
@@ -92,23 +90,23 @@ REST Endpoints:
 
 ```yaml
 {
-    "storeCredits": [
-        {
-            "customer_id": "94795",
-            "website_id": "4",
-            "amount": "4"
-        },
-        {
-            "customer_id": "94796",
-            "website_id": "1",
-            "amount": "4"
-        },
-        {
-            "customer_id": "94797",
-            "website_id": "5",
-            "amount": "4"
-        }
-    ]
+  "storeCredits": [
+    {
+      "customer_id": "94795",
+      "website_id": "4",
+      "amount": "4"
+    },
+    {
+      "customer_id": "94796",
+      "website_id": "1",
+      "amount": "4"
+    },
+    {
+      "customer_id": "94797",
+      "website_id": "5",
+      "amount": "4"
+    }
+  ]
 }
 
 ```
