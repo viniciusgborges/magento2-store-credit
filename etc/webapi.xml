@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+    <route url="/V1/store-credit/get" method="POST">
+        <service class="Vbdev\StoreCredit\Api\StoreCreditManagementInterface" method="get"/>
+        <resources>
+            <resource ref="Magento_Customer::manage"/>
+        </resources>
+    </route>
+
+    <route url="/V1/store-credit/create" method="POST">
+        <service class="Vbdev\StoreCredit\Api\StoreCreditManagementInterface" method="create"/>
+        <resources>
+            <resource ref="Magento_Customer::manage"/>
+        </resources>
+    </route>
+
+    <route url="/V1/store-credit/update" method="POST">
+        <service class="Vbdev\StoreCredit\Api\StoreCreditManagementInterface" method="update"/>
+        <resources>
+            <resource ref="Magento_Customer::manage"/>
+        </resources>
+    </route>
+</routes>
