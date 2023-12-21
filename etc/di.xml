@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="Vbdev\StoreCredit\Api\StoreCreditManagementInterface"
+                type="Vbdev\StoreCredit\Model\Customer\StoreCreditManagement"/>
+    <preference for="Vbdev\StoreCredit\Api\Data\StoreCreditInterface"
+                type="Vbdev\StoreCredit\Model\Customer\StoreCredit"/>
+    <preference for="Vbdev\StoreCredit\Api\Data\StoreCreditResultInterface"
+                type="Vbdev\StoreCredit\Model\Customer\StoreCreditResult"/>
+    <preference for="Vbdev\StoreCredit\Api\StoreCreditInterface"
+                type="Vbdev\StoreCredit\Model\ResourceModel\Customer\StoreCredit"/>
+
+    <virtualType name="Vbdev\StoreCredit\Virtual\Logger\Handler" type="Magento\Framework\Logger\Handler\Base">
+        <arguments>
+            <argument name="fileName" xsi:type="string">var/log/vbdev_store-credit_requests.log</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Vbdev\StoreCredit\Virtual\Logger" type="Magento\Framework\Logger\Monolog">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="debug" xsi:type="object">Vbdev\StoreCredit\Virtual\Logger\Handler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <type name="Vbdev\StoreCredit\Model\ResourceModel\Customer\StoreCredit">
+        <arguments>
+            <argument name="logger" xsi:type="object">Vbdev\StoreCredit\Virtual\Logger</argument>
+        </arguments>
+    </type>
+</config>
