@@ -1,0 +1,5 @@
+"The customer that was requested does not exist. Verify and try again.","O cliente solicitado não existe. Verifique e tente novamente."
+"Invalid amount = %amount. ","Valor inválido = %amount. "
+"Could not %1 Store Credits.","Não foi possível armazenar %1 créditos."
+"The website with id %1 that was requested was not found. Verify the website and try again.","O website com o Id %1 solicitado não foi encontrado. Verifique o site e tente novamente."
+
