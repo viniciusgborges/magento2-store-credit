@@ -11,6 +11,7 @@ use Magento\CustomerBalance\Model\ResourceModel\Balance\CollectionFactory as Bal
 use Magento\CustomerBalance\Model\ResourceModel\BalanceFactory as ResourceBalanceFactory;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\CouldNotSaveException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Psr\Log\LoggerInterface;
 use Vbdev\StoreCredit\Api\StoreCreditInterface;
 
@@ -40,17 +41,22 @@ class StoreCredit implements StoreCreditInterface
      */
     public function get(array $customerIds)
     {
-        $transformedArrays = array_map(function ($customerId) {
-            return trim($customerId);
-        }, preg_split('/\s*,\s*/', $customerIds[0]));
-
-        $balanceCollection = $this->getBalanceCollection();
-        $balanceCollection->addFieldToFilter(
-            'customer_id',
-            [
-                'in' => $transformedArrays
-            ]
+        $transformedArrays = array_unique(
+            array_map(function ($customerId) {
+                return trim($customerId);
+            }, preg_split('/\s*,\s*/', $customerIds[0]))
         );
+        try {
+            $balanceCollection = $this->getBalanceCollection();
+            $balanceCollection->addFieldToFilter(
+                'customer_id',
+                [
+                    'in' => $transformedArrays
+                ]
+            );
+        } catch (Exception $e) {
+            $this->handleException(exception: $e, action: 'GET');
+        }
 
         return $balanceCollection->getData();
     }
@@ -61,27 +67,31 @@ class StoreCredit implements StoreCreditInterface
     public function create(array $storeCredits): bool
     {
         $storeCreditsLogs = [];
-        /** @var \Vbdev\StoreCredit\Api\Data\StoreCreditInterface $storeCredit */
-        foreach ($storeCredits as $storeCredit) {
-            $customerId = $storeCredit->getCustomerId();
-            $websiteId = $storeCredit->getWebsiteId();
-            $amount = $storeCredit->getAmount();
-            try {
-                if (!($balanceCollection = $this->checkIfCustomerBalanceExists(customerId: $customerId, websiteId: $websiteId))) {
-                    $this->createCustomerBalance(customerId: $customerId, websiteId: $websiteId, amount: $amount);
-                    $storeCreditsLogs[] = $this->getBalanceModel()->getData();
-                } elseif ($amount !== $balanceCollection->getFirstItem()->getAmount()) {
-                    $balance = $balanceCollection->getFirstItem();
-                    $balance->setAmount($amount);
-                    /** @var Balance $balance */
-                    $this->getBalanceResourceModel()->save($balance);
-                    $storeCreditsLogs[] = $balance->getData();
+        if (!empty($storeCredits)) {
+            /** @var \Vbdev\StoreCredit\Api\Data\StoreCreditInterface $storeCredit */
+            foreach ($storeCredits as $storeCredit) {
+                $customerId = $storeCredit->getCustomerId();
+                $websiteId = $storeCredit->getWebsiteId();
+                $amount = $storeCredit->getAmount();
+                try {
+                    if (!($balanceCollection = $this->checkIfCustomerBalanceExists(customerId: $customerId, websiteId: $websiteId))) {
+                        $this->createCustomerBalance(customerId: $customerId, websiteId: $websiteId, amount: $amount);
+                        $storeCreditsLogs[] = $this->getBalanceModel()->getData();
+                    } elseif ($amount !== $balanceCollection->getFirstItem()->getAmount()) {
+                        $balance = $balanceCollection->getFirstItem();
+                        $balance->setAmount($amount);
+                        /** @var Balance $balance */
+                        $this->getBalanceResourceModel()->save($balance);
+                        $storeCreditsLogs[] = $balance->getData();
+                    }
+                } catch (Exception $e) {
+                    $this->handleException(exception: $e, action: 'CREATE');
                 }
-            } catch (Exception $e) {
-                $this->handleException(exception: $e,action: 'CREATE');
             }
+            $this->logSuccess(action: 'CREATE', storeCreditsLogs: $storeCreditsLogs);
+            return true;
         }
-        $this->logSuccess(action: 'CREATE',storeCreditsLogs: $storeCreditsLogs);
+        $this->logFailure(action: 'CREATE', storeCreditsLogs: $storeCreditsLogs);
 
         return true;
     }
@@ -92,24 +102,28 @@ class StoreCredit implements StoreCreditInterface
     public function update(array $storeCredits): bool
     {
         $storeCreditsLogs = [];
-        /** @var \Vbdev\StoreCredit\Api\Data\StoreCreditInterface $storeCredit */
-        foreach ($storeCredits as $storeCredit) {
-            $customerId = $storeCredit->getCustomerId();
-            $websiteId = $storeCredit->getWebsiteId();
-            $amount = $storeCredit->getAmount();
-            try {
-                if ($balanceCollection = $this->checkIfCustomerBalanceExists(customerId: $customerId,websiteId: $websiteId)) {
-                    $balance = $balanceCollection->getFirstItem();
-                    $balance->setAmountDelta($amount);
-                    /** @var Balance $balance */
-                    $this->getBalanceResourceModel()->save($balance);
-                    $storeCreditsLogs[] = $balance->getData();
+        if (!empty($storeCredits)) {
+            /** @var \Vbdev\StoreCredit\Api\Data\StoreCreditInterface $storeCredit */
+            foreach ($storeCredits as $storeCredit) {
+                $customerId = $storeCredit->getCustomerId();
+                $websiteId = $storeCredit->getWebsiteId();
+                $amount = $storeCredit->getAmount();
+                try {
+                    if ($balanceCollection = $this->checkIfCustomerBalanceExists(customerId: $customerId, websiteId: $websiteId)) {
+                        $balance = $balanceCollection->getFirstItem();
+                        $balance->setAmountDelta($amount);
+                        /** @var Balance $balance */
+                        $this->getBalanceResourceModel()->save($balance);
+                        $storeCreditsLogs[] = $balance->getData();
+                    }
+                } catch (Exception $e) {
+                    $this->handleException(exception: $e, action: 'UPDATE');
                 }
-            } catch (Exception $e) {
-                $this->handleException(exception: $e, action: 'UPDATE');
             }
+            $this->logSuccess(action: 'UPDATE', storeCreditsLogs: $storeCreditsLogs);
+            return true;
         }
-        $this->logSuccess(action: 'UPDATE',storeCreditsLogs: $storeCreditsLogs);
+        $this->logFailure(action: 'UPDATE', storeCreditsLogs: $storeCreditsLogs);
 
         return true;
     }
@@ -152,6 +166,11 @@ class StoreCredit implements StoreCreditInterface
     private function logSuccess(string $action, array $storeCreditsLogs): void
     {
         $this->logger->info(self::LOG_CONTEXT . " {$action} request completed successfully.", $storeCreditsLogs);
+    }
+
+    private function logFailure(string $action, array $storeCreditsLogs): void
+    {
+        $this->logger->info(self::LOG_CONTEXT . " {$action} request failure.", $storeCreditsLogs);
     }
 
     public function getBalanceModel(): Balance

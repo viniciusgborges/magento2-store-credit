@@ -93,7 +93,7 @@ class StoreCreditManagement implements StoreCreditManagementInterface
         foreach ($storeCredits as $key => $storeCredit) {
             if (!$storeCredit->getCustomerId() || in_array($storeCredit->getCustomerId(), $failedCustomerIds)) {
                 $errorMessage = __('The customer that was requested does not exist. Verify and try again.');
-                $this->addFailedItemStoreCredit($storeCredit, $key, $errorMessage, []);
+                $this->addFailedItemStoreCredit(key: $key, storeCredit: $storeCredit, message: $errorMessage, firstParam: []);
             }
             $this->checkAmount(storeCredit: $storeCredit, key: $key);
             $this->checkWebsiteId(storeCredit: $storeCredit, key: $key);
@@ -116,7 +116,7 @@ class StoreCreditManagement implements StoreCreditManagementInterface
     {
         if (null === $storeCredit->getAmount() || $storeCredit->getAmount() < 0) {
             $errorMessage = __('Invalid amount = %amount. ');
-            $this->addFailedItemStoreCredit($storeCredit, $key, $errorMessage, []);
+            $this->addFailedItemStoreCredit(key: $key, storeCredit: $storeCredit, message: $errorMessage, firstParam: []);
         }
     }
 
@@ -132,7 +132,7 @@ class StoreCreditManagement implements StoreCreditManagementInterface
             $this->websiteRepository->getById($storeCredit->getWebsiteId());
         } catch (Exception $e) {
             $errorMessage = __('The website with id %1 that was requested was not found. Verify the website and try again.', $storeCredit->getWebsiteId());
-            $this->addFailedItemStoreCredit($storeCredit, $key, $errorMessage, []);
+            $this->addFailedItemStoreCredit(key: $key, storeCredit: $storeCredit, message: $errorMessage, firstParam: []);
         }
     }
 
